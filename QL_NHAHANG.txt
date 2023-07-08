@@ -1,0 +1,439 @@
+create database QL_NhaHang
+go
+use QL_NhaHang
+go
+
+
+CREATE TABLE LOAIMONAN
+(
+	MALOAI CHAR(20),
+	TENLOAI NVARCHAR(50),
+	CONSTRAINT PK_LOAIMONAN PRIMARY KEY(MALOAI)
+)
+
+CREATE TABLE MonAn (
+    MaMonAn CHAR(20) PRIMARY KEY,
+    TenMonAn NVARCHAR(255),
+    DonGia INT,
+	MALOAI CHAR(20),
+	DonViTinh NVARCHAR(255), --Gram, dia, ly,..
+    SoLuong INT,
+	CONSTRAINT FK_MONAN_LOAIMONAN FOREIGN KEY (MALOAI) REFERENCES LOAIMONAN(MALOAI)
+);
+
+
+CREATE TABLE Ban (
+    MaBan CHAR(20) PRIMARY KEY,
+    TenBan NVARCHAR(255),
+    SoGhe INT,
+	TrangThai Nvarchar(50)
+);
+
+
+CREATE TABLE KHACHHANG (
+	MaKhachHang CHAR(20) PRIMARY KEY,
+	TenKhachHang NVARCHAR(255),
+	SDT INT,
+	NGSINH DATE
+);
+
+CREATE TABLE NHANVIEN (
+	MaNV CHAR(20) PRIMARY KEY,
+	HoTenNhanVien NVARCHAR(254),
+	SDTNhanVien int,
+
+);
+
+CREATE TABLE DatBan (
+    MaDatBan CHAR(20) PRIMARY KEY,
+    MaBan CHAR(20),
+	MaNV CHAR(20),
+    ThoiGian TIME,
+	MaKhachHang CHAR(20),
+	SoLuongKhach int,
+    CONSTRAINT FK_DatBan_Ban FOREIGN KEY (MaBan) REFERENCES Ban(MaBan),
+	CONSTRAINT FK_KHACHHANG_DATBan FOREIGN KEY (MaKhachHang) REFERENCES KHACHHANG(MaKhachHang),
+	CONSTRAINT FK_DatBan_NhanVien FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
+);
+
+
+--Mỗi đặt bàn phải có ít nhất một món ăn được đặt.
+CREATE TABLE ChiTietDatBan (
+  MaDatBan CHAR (20) NOT NULL,
+  MaMonAn CHAR(20) NOT NULL,
+  SoLuong INT NOT NULL,
+  PRIMARY KEY (MaDatBan, MaMonAn),
+  FOREIGN KEY (MaDatBan) REFERENCES DatBan(MaDatBan),
+  FOREIGN KEY (MaMonAn) REFERENCES MonAn(MaMonAn)
+);
+
+CREATE TABLE Phong (
+	MaPhong CHAR(20) PRIMARY KEY,
+	TenPhong NVARCHAR(255),
+	SoLuongKhachToiDa int,
+	DonGiaThue Float,
+	TrangThai Nvarchar(50)
+);
+
+
+CREATE TABLE DatPhong(
+	MaDatPhong CHAR(20) Primary key,
+	MaPhong CHAR(20),
+	MaNV CHAR(20),
+	ThoiGian DATETIME,
+    MaKhachHang CHAR(20),
+	SoLuongKhach int,
+	SDT INT,
+    CONSTRAINT FK_DatPhong_Phong FOREIGN KEY (MaPhong) REFERENCES Phong(MaPhong),
+	CONSTRAINT FK_DatPhong_Khachhang FOREIGN KEY (MaKhachHang) REFERENCES KhachHang(MaKhachHang),
+	CONSTRAINT FK_DatPhong_NhanVien FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
+);
+
+--Mỗi đặt phòng phải có ít nhất một món ăn được đặt.
+CREATE TABLE ChiTietDatPhong (
+  MaDatPhong CHAR(20) NOT NULL,
+  MaMonAn CHAR(20) NOT NULL,
+  SoLuong INT NOT NULL,
+  PRIMARY KEY (MaDatPhong, MaMonAn),
+  FOREIGN KEY (MaDatPhong) REFERENCES DatPhong(MaDatPhong),
+  FOREIGN KEY (MaMonAn) REFERENCES MonAn(MaMonAn)
+);
+
+
+CREATE TABLE NguyenLieu (
+    MaNguyenLieu CHAR(20) PRIMARY KEY,
+    TenNguyenLieu NVARCHAR(255),
+	DonViTinh NVARCHAR(255), -- GRAM, KG, LIT,...
+    SoLuong INT
+);
+
+
+--Bảng trung gian này được sử dụng để lưu trữ thông tin về nguyên liệu cần dùng để chế biến món ăn
+--Mỗi món ăn có thể sử dụng nhiều nguyên liệu.
+CREATE TABLE MonAn_NguyenLieu (
+    MaMonAn CHAR(20),
+    MaNguyenLieu CHAR(20),
+    SoLuong INT,
+    PRIMARY KEY (MaMonAn, MaNguyenLieu),
+    FOREIGN KEY (MaMonAn) REFERENCES MonAn(MaMonAn),
+    FOREIGN KEY (MaNguyenLieu) REFERENCES NguyenLieu(MaNguyenLieu)
+);
+
+--Mỗi nhập kho áp dụng cho một nguyên liệu.
+CREATE TABLE PhieuNhapKho (
+    MaPhieuNhap CHAR(20) PRIMARY KEY,
+    NgayNhap DATE,
+    TongTien INT
+);
+
+
+CREATE TABLE ChiTietPhieuNhap (
+    MaPhieuNhap CHAR(20),
+    MaNguyenLieu CHAR(20),
+    SoLuong INT,
+    DonGia FLOAT,
+    PRIMARY KEY (MaPhieuNhap, MaNguyenLieu),
+    FOREIGN KEY (MaPhieuNhap) REFERENCES PhieuNhapKho(MaPhieuNhap),
+    FOREIGN KEY (MaNguyenLieu) REFERENCES NguyenLieu(MaNguyenLieu)
+);
+
+--Mỗi xuất kho áp dụng cho một nguyên liệu.
+CREATE TABLE PhieuXuatKho (
+    MaPhieuXuat CHAR(20) PRIMARY KEY,
+    NgayXuat DATE,
+    TongTien INT
+);
+
+
+CREATE TABLE ChiTietPhieuXuat (
+    MaPhieuXuat CHAR(20),
+    MaNguyenLieu CHAR(20),
+    SoLuong INT,
+    DonGia INT,
+    PRIMARY KEY (MaPhieuXuat, MaNguyenLieu),
+    FOREIGN KEY (MaPhieuXuat) REFERENCES PhieuXuatKho(MaPhieuXuat),
+    FOREIGN KEY (MaNguyenLieu) REFERENCES NguyenLieu(MaNguyenLieu)
+);
+
+
+CREATE TABLE TAIKHOAN (
+	MaNV CHAR(20),
+	MatKhau CHAR(50),
+	Quyen Nvarchar(50),
+	FOREIGN KEY (MaNV) REFERENCES NHANVIEN(MaNV)
+);
+
+
+INSERT INTO LOAIMONAN
+VALUES
+('L001', N'MÓN CHÍNH'), 
+('L002', N'MÓN PHỤ'),
+('L003', N'TRÁNG MIỆNG')
+
+INSERT INTO MonAn
+VALUES
+('MA001', N'THỊT KHO TÀU', 70000, 'L001', N'ĐĨA', 10),
+('MA002', N'NUI XÀO', 45000, 'L002', N'ĐĨA', 20),
+('MA003', N'MÌ SPAGHETTI', 50000, 'L002', N'ĐĨA', 15),
+('MA004', N'THỊT XÀO CHUA NGỌT', 90000, 'L001', N'ĐĨA', 20),
+('MA005', N'BÁNH XÈO', 35000, 'L002', N'ĐĨA', 30),
+('MA006', N'CUA HOÀNG ĐẾ', 300000, 'L001', N'ĐĨA', 5),
+('MA007', N'TÔM HÙM ALASKA', 200000, 'L001', N'ĐĨA', 5),
+('MA008', N'TRÀ SỮA', 30000, 'L003', N'LY', 30),
+('MA009', N'CHÈ THÁI', 20000, 'L003', N'CHÉN', 40)
+
+INSERT INTO Ban
+VALUES
+('BAN001', N'BÀN 1', 10, N'CÒN TRỐNG'),
+('BAN002', N'BÀN 2', 20, N'ĐỦ CHỖ'),
+('BAN003', N'BÀN 3', 20, N'CÒN TRỐNG'),
+('BAN004', N'BÀN 4', 15, N'ĐỦ CHỖ'),
+('BAN005', N'BÀN 5', 10, N'ĐỦ CHỖ'),
+('BAN006', N'BÀN 6', 15, N'CÒN TRỐNG'),
+('BAN007', N'BÀN 7', 15, N'ĐỦ CHỖ'),
+('BAN008', N'BÀN 8', 20, N'CÒN TRỐNG')
+
+INSERT INTO NHANVIEN
+VALUES
+('KH001', N'TRẦN THANH NAM', 0357482658),
+('KH002', N'BÙI LÊ THANH NGÂN', 0375819563),
+('KH003', 'NGUYỄN MINH TUẤN', 0357528596),
+('KH004', N'NGUYỄN THỊ THƯƠNG', 0384618713)
+
+SET DATEFORMAT DMY
+INSERT INTO KHACHHANG
+VALUES
+('KH001', N'NGUYỄN ĐỨC AN', 0357291857, '22/10/2000'),
+('KH002', N'TRẦN PHẠM MAI ANH', 0385618732, '12/12/2001'),
+('KH003', N'LÊ THANH PHONG', 0357291857, '02/02/1992'),
+('KH004', N'NGUYỄN CAO QUÝ', 0357291857, '26/03/1996'),
+('KH005', N'NGUYỄN MAI PHƯƠNG', 0357291857, '14/11/2001'),
+('KH006', N'HUỲNH TRÚC LIÊN', 0357291857, '12/02/1998'),
+('KH007', N'TRẦN ĐỨC QUÝ', 0357291857, '02/11/2002'),
+('KH008', N'NGUYỄN THÀNH ĐẠT', 0357291857, '25/07/2001')
+
+
+INSERT INTO DatBan
+VALUES
+('DB001', N'BÀN 1', 'NV001', '09:05:34', 'KH002', 10),
+('DB002', N'BÀN 8', 'NV004', '16:08:02', 'KH001', 1),
+('DB003', N'BÀN 8', 'NV004', '10:56:44', 'KH001', 10),
+('DB004', N'BÀN 4', 'NV003', '14:43:22', 'KH008', 20),
+('DB005', N'BÀN 3', 'NV001', '13:10:21', 'KH006', 15),
+('DB006', N'BÀN 6', 'NV002', '21:10:00', 'KH005', 10),
+('DB007', N'BÀN 5', 'NV003', '12:55:12', 'KH003', 20),
+('DB008', N'BÀN 2', 'NV001', '17:56:32', 'KH007', 10)
+
+INSERT INTO ChiTietDatBan
+VALUES
+('DB001', 'MA002', 4),
+('DB004', 'MA001', 4),
+('DB002', 'MA006', 1),
+('DB005', 'MA006', 6),
+('DB006', 'MA002', 4),
+('DB003', 'MA004', 9),
+('DB008', 'MA003', 7),
+('DB005', 'MA005', 3),
+('DB001', 'MA001', 4),
+('DB005', 'MA006', 5),
+('DB004', 'MA006', 6),
+('DB007', 'MA002', 5),
+('DB008', 'MA004', 2),
+('DB003', 'MA003', 3),
+('DB001', 'MA005', 4)
+
+INSERT INTO Phong
+VALUES
+('P001', N'PHÒNG 1', 4, 250000, N'HẾT PHÒNG'),
+('P002', N'PHÒNG 2', 2, 450000, N'CÒN PHÒNG'),
+('P003', N'PHÒNG 3', 7, 350000, N'HẾT PHÒNG'),
+('P004', N'PHÒNG 4', 1, 250000, N'HẾT PHÒNG'),
+('P005', N'PHÒNG 5', 2, 250000, N'CÒN PHÒNG'),
+('P006', N'PHÒNG 6', 4, 350000, N'HẾT PHÒNG'),
+('P007', N'PHÒNG 7', 5, 450000, N'HẾT PHÒNG'),
+('P008', N'PHÒNG 8', 4, 550000, N'CÒN PHÒNG')
+
+
+
+INSERT INTO DatPhong
+VALUES
+('DP001', 'P003', 'NV003', '12:05:11', 'KH007', 6, 0348275618),
+('DP002', 'P001', 'NV001', '17:10:21', 'KH004', 4, 0947164824),
+('DP003', 'P004', 'NV004', '13:05:22', 'KH001', 1, 0311774683),
+('DP004', 'P006', 'NV003', '17:05:16', 'KH006', 7, 0345678912),
+('DP005', 'P007', 'NV002', '20:05:05', 'KH003', 4, 0987654321),
+('DP006', 'P003', 'NV001', '09:05:28', 'KH005', 5, 0346483795),
+('DP007', 'P004', 'NV002', '16:34:50', 'KH008', 1, 0395533676)
+
+INSERT INTO ChiTietDatPhong
+VALUES
+('DP001', 6, 'MA004'),
+('DP002', 4, 'MA008'),
+('DP004', 5, 'MA003'),
+('DP002', 6, 'MA006'),
+('DP006', 4, 'MA005'),
+('DP007', 2, 'MA001'),
+('DP005', 3, 'MA002'),
+('DP003', 1, 'MA008'),
+('DP001', 5, 'MA003'),
+('DP003', 1, 'MA006'),
+('DP005', 4, 'MA005'),
+('DP003', 2, 'MA001'),
+('DP006', 3, 'MA002')
+
+INSERT INTO NguyenLieu
+VALUES
+('NL001', N'NUI', 'BỊCH', 10),
+('NL002', N'HÀNH TÂY', 'KG', 5),
+('NL003', N'THỊT BĂM', 'KG', 7),
+('NL004', N'CÀ CHUA', 'KG', 12),
+('NL005', N'THỊT HEO', 'KG', 6),
+('NL006', N'TRỨNG CÚT', 'KG', 4),
+('NL007', N'MÌ', 'GRAM', 5),
+('NL008', N'BỘT GẠO', 'GRAM', 5),
+('NL009', N'BỘT NGHỆ', 'GRAM', 2),
+('NL0010', N'TÔM', 'KG', 4),
+('NL0011', N'GIÁ ĐỖ', 'GRAM', 5),
+('NL0012', N'MUỐI', 'GRAM', 7),
+('NL0013', N'ĐƯỜNG', 'GRAM', 5),
+('NL0014', N'HẠT NÊM', 'GRAM', 2),
+('NL0015', N'HÀNH LÁ', 'GRAM', 6),
+('NL0016', N'CUA HOÀNG ĐẾ', 'CON', 10),
+('NL0017', N'TÔM HÙM ALASKA', 'CON', 10),
+('NL0018', N'TRÀ', 'HỘP', 5),
+('NL0019', N'SỮA TƯƠI', 'LÍT', 10),
+('NL0020', N'TRÂN CHÂU', 'GRAM', 10),
+('NL0021', N'THẠCH', 'GRAM', 10),
+('NL0022', N'MÍT', 'KG', 3),
+('NL0023', N'NHÃN', 'KG', 4),
+('NL0024', N'XOÀI', 'KG', 6),
+('NL0025', N'BỘT RAU CÂU', 'BỊCH', 7),
+('NL0026', N'BỘT CỐT DỪA', 'BỊCH', 10),
+('NL0027', N'THẠCH DỪA', 'LON', 4)
+
+INSERT INTO MonAn_NguyenLieu
+VALUES
+('MA001', 'NL005', 2),
+('MA001', 'NL006', 4),
+('MA001', 'NL0012', 2),
+('MA001', 'NL0013', 2),
+('MA001', 'NL0014', 2),
+('MA001', 'NL0015', 3),
+('MA002', 'NL001', 3),
+('MA002', 'NL002', 4),
+('MA002', 'NL003', 6),
+('MA002', 'NL004', 6),
+('MA002', 'NL0012', 2),
+('MA002', 'NL0013', 2),
+('MA002', 'NL0014', 2),
+('MA003', 'NL007', 2),
+('MA003', 'NL003', 5),
+('MA003', 'NL004', 7),
+('MA003', 'NL0012', 2),
+('MA003', 'NL0013', 2),
+('MA003', 'NL0014', 2),
+('MA004', 'NL005', 4),
+('MA004', 'NL0012', 2),
+('MA004', 'NL0013', 2),
+('MA004', 'NL0014', 2),
+('MA004', 'NL0015', 3),
+('MA005', 'NL008', 3),
+('MA005', 'NL009', 1),
+('MA005', 'NL0010', 3),
+('MA005', 'NL0011', 3),
+('MA005', 'NL0012', 2),
+('MA005', 'NL0013', 2),
+('MA005', 'NL0014', 2),
+('MA005', 'NL0015', 3),
+('MA005', 'NL005', 5),
+('MA006', 'NL005', 2),
+('MA006', 'NL0016', 5),
+('MA007', 'NL0017', 8),
+('MA008', 'NL0018', 3),
+('MA008', 'NL0019', 8),
+('MA008', 'NL0020', 9),
+('MA008', 'NL0021', 9),
+('MA008', 'NL0013', 3),
+('MA009', 'NL0019', 8),
+('MA009', 'NL0022', 2),
+('MA009', 'NL0023', 2),
+('MA009', 'NL0024', 2),
+('MA009', 'NL0025', 4),
+('MA009', 'NL0026', 8),
+('MA009', 'NL0027', 3),
+('MA009', 'NL0013', 3)
+
+INSERT INTO PhieuNhapKho
+VALUES
+('PN001', '20/09/2017', NULL),
+('PN002', '24/07/2015', NULL),
+('PN003', '15/04/2018', NULL),
+('PN004', '02/01/2014', NULL),
+('PN005', '14/10/2020', NULL),
+('PN006', '09/05/2021', NULL),
+('PN007', '23/03/2020', NULL),
+('PN008', '11/05/2019', NULL),
+('PN009', '05/12/2016', NULL),
+('PN0010', '25/10/2017', NULL)
+
+INSERT INTO ChiTietPhieuNhap
+VALUES
+('PN001', 'NL002', 5, 75000),
+('PN002', 'NL0011', 10, 75000),
+('PN003', 'NL0022', 12, 50000),
+('PN004', 'NL008', 19, 95000),
+('PN005', 'NL006', 13, 55000),
+('PN006', 'NL0027', 11, 40000),
+('PN007', 'NL0014', 9, 35000),
+('PN008', 'NL0019', 10, 50000),
+('PN009', 'NL0023', 20, 90000),
+('PN0010', 'NL001', 23, 45000),
+('PN003', 'NL0024', 10, 30000),
+('PN005', 'NL0017', 14, 20000),
+('PN002', 'NL0015', 7, 30000),
+('PN008', 'NL0020', 30, 65000),
+('PN009', 'NL004', 15, 25000)
+
+INSERT INTO PhieuXuatKho
+VALUES
+('PX001', '20/11/2020', NULL),
+('PX002', '24/09/2020', NULL),
+('PX003', '15/06/2021', NULL),
+('PX004', '02/03/2022', NULL),
+('PX005', '14/12/2020', NULL),
+('PX006', '09/07/2021', NULL),
+('PX007', '23/05/2020', NULL),
+('PX008', '11/07/2022', NULL),
+('PX009', '05/02/2021', NULL),
+('PX0010', '25/12/2020', NULL),
+('PX0011', '14/12/2021', NULL)
+
+INSERT INTO ChiTietPhieuXuat
+VALUES
+('PX001', 'NL002', 5, 75000),                            
+('PX002', 'NL0011', 10, 75000),
+('PX003', 'NL0022', 7, 50000),
+('PX004', 'NL008', 9, 95000),
+('PX005', 'NL006', 7, 55000),
+('PX006', 'NL0027', 4, 40000),
+('PX007', 'NL0014', 3, 35000),
+('PX008', 'NL0019', 10, 50000),
+('PX009', 'NL0023', 20, 90000),
+('PX0010', 'NL001', 13, 45000),
+('PX0011', 'NL0024', 10, 30000),
+('PX005', 'NL0017', 4, 20000),
+('PX002', 'NL0015', 7, 30000),
+('PX008', 'NL001', 10, 65000),
+('PX009', 'NL006', 5, 25000),
+('PX005', 'NL0014', 5, 65000),
+('PX002', 'NL0022', 5, 65000),
+('PX004', 'NL0027', 5, 65000),
+('PX008', 'NL0017', 8, 65000),
+('PX0010', 'NL008', 10, 65000)
+
+INSERT INTO TAIKHOAN
+VALUES
+('NV001', 'TUNG123', 'ADMIN'),
+('NV001', 'NAN123', 'USER'),
+('NV001', 'NAM123', 'USER'),
+('NV001', 'THUONG123', 'USER')
